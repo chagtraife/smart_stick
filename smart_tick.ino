@@ -4,6 +4,7 @@
 #include <TinyGPS.h>
 #include "common.h"
 #include "sim800.h"
+#include "df.h"
 
 Adafruit_MPU6050 mpu;
 TinyGPS gps;
@@ -32,6 +33,8 @@ void setup() {
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
   // set filter bandwidth to 21 Hz
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+
+  df_init();
   delay(100);
 }
 void read_mpu6050() {
@@ -106,12 +109,6 @@ bool read_GPS(long *latitude, long *longitude) {
   }
   return false;
 }
-void alarm() {
-
-}
-void askUser() {
-  switch_uart(DF);
-}
 bool checkResponse() {
   int cnt = 0;
   while((!isButtonPress)) {
@@ -176,15 +173,17 @@ void sos() {
 }
 
 int cnt_loop = 0;
-
+bool isFalled = false;
 void loop() {
   read_SR04T();
 
-  if (isFall()) {
+  if (!isFall()) isFalled = false;
+  else if (!isFalled) {
     askUser();
     if (!checkResponse()) {
       sos();
-    }
+      isFalled = true;
+    };
   }
 
   if (isSOSPress()) {
