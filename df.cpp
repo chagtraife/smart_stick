@@ -4,6 +4,7 @@
 DFRobotDFPlayerMini myDFPlayer;
 
 void df_init() {
+  switch_uart(DF);
   if (!myDFPlayer.begin(FPSerial, /*isACK = */true, /*doReset = */true)) {  //Use serial to communicate with mp3.
     while(true);
   }
