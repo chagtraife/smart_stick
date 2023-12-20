@@ -9,5 +9,6 @@
 void df_init();
 void alarm();
 void askUser();
+void stopDF();
 
 #endif
