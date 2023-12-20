@@ -94,17 +94,28 @@ void read_SR04T() {
     }
   }
 }
-bool read_GPS(long *latitude, long *longitude) {
+bool read_GPS(float *latitude, float *longitude) {
+  printDebug("read_GPS");
   unsigned long fix_age;
   switch_uart(GPS);
-  waitForSerial(2000);
-  if (Serial.available()) {
-    int c = Serial.read();                   // Read the GPS data
-    if (gps.encode(c))                        // Check the GPS data
+  bool newData = false;
+  // For one second we parse GPS data and report some key values
+  for (unsigned long start = millis(); millis() - start < 2000;)
+  {
+    while (Serial.available())
     {
-      // process new gps info here
+      char c = Serial.read();
+      // Serial.write(c); // uncomment this line if you want to see the GPS data flowing
+      if (gps.encode(c)) // Did a new valid sentence come in?
+        newData = true;
     }
-    gps.get_position(latitude, longitude);
+  }
+  if (newData) {
+    gps.f_get_position(latitude, longitude);
+    // printDebug("latitude");
+    // Serial.println(String(*latitude));
+    // printDebug("longitude");
+    // Serial.println(String(*longitude));
     return true;
   }
   return false;
@@ -114,7 +125,7 @@ bool checkResponse() {
   while((!isButtonPress)) {
     cnt++;
     delay(50);
-    if (cnt > 100) {
+    if (cnt > 200) {
       //timeout
       return false;
     }
@@ -142,8 +153,8 @@ bool isSOSPress() {
 bool ishorizontal() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
-  Serial.print(a.acceleration.y); // dung gia tri nay de kiểm tra xem có ngã hay không, gần = 0 thì ngã
-  return (abs(a.acceleration.y) < 1);
+  // Serial.print(a.acceleration.y); // dung gia tri nay de kiểm tra xem có ngã hay không, gần = 0 thì ngã
+  return (abs(a.acceleration.y) < 2);
 }
 bool isFall() {
   int cnt = 0;
@@ -157,17 +168,19 @@ bool isFall() {
   return false;
 }
 void sos() {
-  long lat, lon;
+  printDebug("sos");
+  float lat, lon = 0;
   if (read_GPS(&lat, &lon)) {
     int cnt = 0;
-    for (int i = 0; (i < PHONEBOOK_SIZE) && (cnt < MAX_SOS_NUM); i++) {
-      String number = getContactInfo(i);
+    // for (int i = 0; (i < PHONEBOOK_SIZE) && (cnt < MAX_SOS_NUM); i++) {
+      String number = "0336382879";//getContactInfo(i);
       if (number != "") {
         cnt++;
-        String message = "SOS!!! Please Help me!!! You can find me at location: https://www.google.com/maps?q=" + String(lat) + "," + String(lon);
-        sendSMS(number, message);
+        String message = "SOS!!! Please Help me!!! You can find me at location: https://www.google.com/maps?q=" + String(lat,7) + "," + String(lon,7);
+        printDebug(message);
+        // sendSMS(number, message);
       }
-    }
+    // }
   }
   alarm();
 }
@@ -177,7 +190,10 @@ bool isFalled = false;
 void loop() {
   read_SR04T();
 
-  if (!isFall()) isFalled = false;
+  if (!isFall()) {
+    isFalled = false;
+    stopDF();
+  }
   else if (!isFalled) {
     askUser();
     if (!checkResponse()) {
@@ -187,14 +203,16 @@ void loop() {
   }
 
   if (isSOSPress()) {
+    printDebug("isSOSPress");
     sos();
+    checkResponse();
   }
   
   cnt_loop++;
   if (cnt_loop == 100) {
     cnt_loop = 0;
     // thêm điều kiện gậy để im, không hoạt động, dùng cảm biến gia tốc
-    updateSubcriber(); // 20s update
+    // updateSubcriber(); // 20s update
   }
   delay(200);
 }
