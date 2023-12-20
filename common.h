@@ -25,5 +25,6 @@ const int PHONEBOOK_SIZE = 100;
 
 void switch_uart(module_t module);
 void waitForSerial(unsigned long timeout_millis);
+void printDebug(String);
 
 #endif

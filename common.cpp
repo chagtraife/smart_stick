@@ -36,3 +36,8 @@ void waitForSerial(unsigned long timeout_millis) {
       break;
   }
 }
+
+void printDebug(String log) {
+  switch_uart(USB);
+  Serial.println(log);
+}
