@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#define SIM800L Serial
+
 void updateSubcriber();
 bool addToPhonebook(String name, String phoneNumber, int index);
 bool deletePhonebook(int index);

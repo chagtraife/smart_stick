@@ -8,7 +8,7 @@ void df_init() {
   switch_uart(DF);
   myDFPlayer.begin(FPSerial, false, false);
   myDFPlayer.setTimeOut(500);
-  myDFPlayer.volume(30);
+  myDFPlayer.volume(8);
   myDFPlayer.EQ(DFPLAYER_EQ_NORMAL);
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
 }

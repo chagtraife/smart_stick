@@ -38,6 +38,8 @@ void waitForSerial(unsigned long timeout_millis) {
 }
 
 void printDebug(String log) {
+  #ifdef DEBUG
   switch_uart(USB);
   Serial.println(log);
+  #endif
 }

@@ -86,7 +86,8 @@ void read_SR04T() {
           // Serial.println(distance);
           Serial.print("cycle: ");
           Serial.println(cycle);
-          analogWrite(MOTOR_PIN, cycle);
+          //analogWrite(MOTOR_PIN, cycle);
+          analogWrite(MOTOR_PIN, 0);
         } else {
           analogWrite(MOTOR_PIN, 0);
         }
@@ -170,19 +171,23 @@ bool isFall() {
 void sos() {
   printDebug("sos");
   float lat, lon = 0;
+  String message = "";
   if (read_GPS(&lat, &lon)) {
-    int cnt = 0;
-    // for (int i = 0; (i < PHONEBOOK_SIZE) && (cnt < MAX_SOS_NUM); i++) {
-      String number = "0336382879";//getContactInfo(i);
-      if (number != "") {
-        cnt++;
-        String message = "SOS!!! Please Help me!!! You can find me at location: https://www.google.com/maps?q=" + String(lat,7) + "," + String(lon,7);
-        printDebug(message);
-        // sendSMS(number, message);
-      }
-    // }
+    message = "SOS!!! google.com/maps?q=" + String(lat,7) + "," + String(lon,7);
+  } else {
+    message = "SOS!!!";
   }
-  alarm();
+  // printDebug(message);
+  int cnt = 0;
+  // for (int i = 0; (i < PHONEBOOK_SIZE) && (cnt < MAX_SOS_NUM); i++) {
+    String number = "+84336382879";//getContactInfo(i);
+    if (number != "") {
+      cnt++;
+      // sendSMS(number, message);
+    }
+  // }
+  
+  // alarm();
 }
 
 int cnt_loop = 0;
@@ -205,14 +210,16 @@ void loop() {
   if (isSOSPress()) {
     printDebug("isSOSPress");
     sos();
+    while (isButtonPress);
     checkResponse();
   }
   
   cnt_loop++;
-  if (cnt_loop == 100) {
+  if (cnt_loop == 5) {
+    
     cnt_loop = 0;
-    // thêm điều kiện gậy để im, không hoạt động, dùng cảm biến gia tốc
-    // updateSubcriber(); // 20s update
+    // có thể thêm điều kiện gậy để im, không hoạt động, dùng cảm biến gia tốc
+    updateSubcriber(); // 20s update
   }
-  delay(200);
+  delay(20);
 }
