@@ -57,19 +57,22 @@ void read_SR04T() {
   // Variable to hold checksum
   unsigned char CS;
   int distance = 0;
-
   switch_uart(SR04T);
+  delay(50);
   Serial.write(0x55);
-  delay(5);
+  Serial.write(0x55);
+  waitSIM800L(200);
     // send data only when you receive data:
-  if (Serial.available() > 0) {
+  if (Serial.available()) {
     // Check for packet header character 0xff
     if (Serial.read() == 0xff) {
       // Insert header into array
       data_buffer[0] = 0xff;
+      waitSIM800L(50);
       // Read remaining 3 characters of data and insert into array
       for (int i = 1; i < 4; i++) {
         data_buffer[i] = Serial.read();
+        waitSIM800L(50);
       }
  
       //Compute checksum
@@ -77,22 +80,24 @@ void read_SR04T() {
       // If checksum is valid compose distance from data
       if (data_buffer[3] == CS) {
         distance = (data_buffer[1] << 8) + data_buffer[2];
+        // printDebug("distance: " + String(distance));
         if (distance < 1750) {
           if (distance < 250) distance = 0;
           else distance -= 250;
           int cycle = 255 - uint32_t(distance * 17) / 100;  // 255 - (distance * 255) / 1500;
-          switch_uart(USB);
-          // Serial.print("distance: ");
-          // Serial.println(distance);
-          Serial.print("cycle: ");
-          Serial.println(cycle);
-          //analogWrite(MOTOR_PIN, cycle);
-          analogWrite(MOTOR_PIN, 0);
+          // printDebug("cycle: " + String(cycle));
+          analogWrite(MOTOR_PIN, cycle);
         } else {
           analogWrite(MOTOR_PIN, 0);
         }
+      } else {
+        printDebug("======");
       }
+    } else {
+      printDebug("kkk");
     }
+  } else {
+        printDebug("+++");
   }
 }
 bool read_GPS(float *latitude, float *longitude) {
@@ -191,31 +196,31 @@ bool isFalled = false;
 void loop() {
   read_SR04T();
 
-  if (!isFall()) {
-    isFalled = false;
-    stopDF();
-  }
-  else if (!isFalled) {
-    askUser();
-    if (!checkResponse()) {
-      sos();
-      isFalled = true;
-    };
-  }
+  // if (!isFall()) {
+  //   isFalled = false;
+  //   stopDF();
+  // }
+  // else if (!isFalled) {
+  //   askUser();
+  //   if (!checkResponse()) {
+  //     sos();
+  //     isFalled = true;
+  //   };
+  // }
 
-  if (isSOSPress()) {
-    printDebug("isSOSPress");
-    sos();
-    while (isButtonPress);
-    checkResponse();
-  }
+  // if (isSOSPress()) {
+  //   printDebug("isSOSPress");
+  //   sos();
+  //   while (isButtonPress);
+  //   checkResponse();
+  // }
   
-  cnt_loop++;
-  if (cnt_loop == 5) {
+  // cnt_loop++;
+  // if (cnt_loop == 5) {
     
-    cnt_loop = 0;
-    // có thể thêm điều kiện gậy để im, không hoạt động, dùng cảm biến gia tốc
-    updateSubcriber(); // 20s update
-  }
-  delay(20);
+  //   cnt_loop = 0;
+  //   // có thể thêm điều kiện gậy để im, không hoạt động, dùng cảm biến gia tốc
+  //   // updat0eSubcriber(); // 20s update
+  // }
+  delay(200);
 }

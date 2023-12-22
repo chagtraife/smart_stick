@@ -31,7 +31,7 @@ void switch_uart(module_t module) {
 
 void waitForSerial(unsigned long timeout_millis) {
   unsigned long start = millis();
-  while (!Serial) {
+  while (!Serial.available()) {
     if (millis() - start > timeout_millis)
       break;
   }
