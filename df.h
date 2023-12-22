@@ -9,6 +9,8 @@
 void df_init();
 void alarm();
 void askUser();
+void add_sdt_success();
+void reset_sdt_success();
 void stopDF();
 
 #endif

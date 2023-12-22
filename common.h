@@ -22,7 +22,7 @@ typedef enum {
   USB
 } module_t;
 
-const int PHONEBOOK_SIZE = 100; 
+const int PHONEBOOK_SIZE = 10; 
 
 void switch_uart(module_t module);
 void waitForSerial(unsigned long timeout_millis);

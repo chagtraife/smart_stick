@@ -4,7 +4,7 @@ void waitSIM800L(uint16_t timeout) {
   uint16_t cnt = 0;
   while ((!SIM800L.available()) && (cnt < timeout)) {
     cnt++;
-    delay(2);
+    delay(1);
   };
 }
 
@@ -19,7 +19,7 @@ String getResponse() {
   while (SIM800L.available()) {
     char c = SIM800L.read();
     response += c;
-    delay(2);
+    waitSIM800L(400);
   }
   return response;
 }
@@ -37,42 +37,59 @@ void updateSubcriber() {
   // printDebug("updateSubcriber");
   String res = readSMS(1);
   if (res.indexOf("ERROR") != -1) return;
+  if (res.indexOf("+CMGR:") == -1) return;
   String number;
   if (res.indexOf("CHU") != -1) {
-    printDebug("===========");
     int idx_1 = res.indexOf("+84");
-    printDebug("idx_1: " + String(idx_1));
     int idx_2 = res.indexOf(",", idx_1);
-    printDebug("idx_2: " + String(idx_2));
     number = res.substring(idx_1, idx_2 - 1);
-    printDebug("number: " + number);
-    // if (findPhoneNumber(number) == -1) {
-  //     int idx = findEmptyPhonebookIndex();
-  //     if (idx != -1) {
-  //       addToPhonebook("sub", number, idx);
-  //     }
-  //   }
-  // } else if (res.indexOf("reset") != -1) {
-  //   int idx = findPhoneNumber(number);
-  //   if (idx != -1) {
-  //     deletePhonebook(idx);
-  //   }
+    // printDebug("number: " + number);
+    if (addToPhonebook("sub", number, 1)) { // force
+      add_sdt_success();
+    }
+    // int idx = -1;
+    // bool isAdded = false;
+    // for (int i = 1; i <= PHONEBOOK_SIZE; i++) {
+    //   String numAtIdx = getContactInfo(i);
+    //   if (numAtIdx == "ERROR") continue;
+    //   if (numAtIdx == number) {
+    //     isAdded = true;
+    //     break;
+    //   } else if ((numAtIdx == "") && (idx == -1)) {
+    //     idx = i;
+    //   }
+    // }
+    // if ((!isAdded) && (idx != -1)) {
+    //   if (addToPhonebook("sub", number, idx)) {
+    //     add_sdt_success();
+    //   }
+    // }
+  } else if (res.indexOf("reset") != -1) {
+    int idx_1 = res.indexOf("+84");
+    int idx_2 = res.indexOf(",", idx_1);
+    number = res.substring(idx_1, idx_2 - 1);
+    String numAtIdx = getContactInfo(1);
+    if (numAtIdx == number) {
+      if (deletePhonebook(1)) {
+        reset_sdt_success();
+      }
+    }
+    // for (int i = 1; i <= PHONEBOOK_SIZE; i++) {
+    //   String numAtIdx = getContactInfo(i);
+    //   if (numAtIdx == number) {
+    //     if (deletePhonebook(i)) {
+    //       reset_sdt_success();
+    //     }
+    //   }
+    // }
   }
-  // deleteSMS(1);
+  deleteSMS(1);
 }
 
 bool addToPhonebook(String name, String phoneNumber, int index) {
-  switch_uart(SIM);
+  sendCMD("AT");
   String command = "AT+CPBW=" + String(index) + ",\"" + phoneNumber + "\",129,\"" + name + "\"";
-  SIM800L.println(command);
-  delay(1000);
-
-  // Đọc dữ liệu từ module SIM800L
-  String response = "";
-  while (SIM800L.available()) {
-    response = SIM800L.readString();
-    delay(10);
-  }
+  String response = sendCMD(command);
 
   // Kiểm tra kết quả phản hồi để xác định xem số điện thoại đã được thêm vào danh bạ hay không
   if (response.indexOf("OK") != -1) {
@@ -83,18 +100,10 @@ bool addToPhonebook(String name, String phoneNumber, int index) {
 }
 
 bool deletePhonebook(int index) {
-  switch_uart(SIM);
+  sendCMD("AT");
   String command = "AT+CPBW=" + String(index);
   command += "\r\n";
-  SIM800L.println(command);
-  delay(1000);
-
-  // Đọc dữ liệu từ module SIM800L
-  String response = "";
-  while (SIM800L.available()) {
-    response = SIM800L.readString();
-    delay(10);
-  }
+  String response = sendCMD(command);
 
   // Kiểm tra kết quả phản hồi để xác định xem số điện thoại đã được xóa hay không
   if (response.indexOf("OK") != -1) {
@@ -104,53 +113,12 @@ bool deletePhonebook(int index) {
   }
 }
 
-int findEmptyPhonebookIndex() {
-  for (int i = 1; i <= PHONEBOOK_SIZE; ++i) {
-    if (!checkPhonebook(i)) {
-      return i;
-    }
-  }
-  return -1; // Không tìm thấy vị trí trống trong danh bạ
-}
-
-int findPhoneNumber(String phoneNumber) {
-  switch_uart(SIM);
-  String command = "AT+CPBF=\"" + phoneNumber + "\"";
-  SIM800L.println(command);
-  delay(1000);
-
-  // Đọc dữ liệu từ module SIM800L
-  String response = "";
-  while (SIM800L.available()) {
-    response = SIM800L.readString();
-    delay(10);
-  }
-
-  // Kiểm tra phản hồi để trích xuất vị trí từ dữ liệu phản hồi
-  int index = -1;
-  if (response.indexOf("+CPBF:") != -1) {
-    int colonIndex = response.indexOf(":");
-    int commaIndex = response.indexOf(",");
-    if (commaIndex != -1) {
-      index = response.substring(colonIndex + 1, commaIndex).toInt();
-    }
-  }
-
-  return index;
-}
 String getContactInfo(int index) {
   switch_uart(SIM);
+  sendCMD("AT");
   String command = "AT+CPBR=" + String(index);
-  SIM800L.println(command);
-  delay(1000);
-
-  // Đọc dữ liệu từ module SIM800L
-  String response = "";
-  while (SIM800L.available()) {
-    response = SIM800L.readString();
-    delay(10);
-  }
-
+  String response = sendCMD(command);
+  if (response.indexOf("OK") == -1) return "ERROR";
   // Xử lý phản hồi để trích xuất thông tin liên hệ từ dữ liệu phản hồi
   if (response.indexOf("+CPBR:") != -1) {
     int colonIndex = response.indexOf(":");
@@ -165,27 +133,9 @@ String getContactInfo(int index) {
 
   return ""; // Trả về chuỗi rỗng nếu không có thông tin liên hệ tại vị trí đó
 }
-bool checkPhonebook(int index) {
-  switch_uart(SIM);
-  String command = "AT+CPBR=" + String(index);
-  SIM800L.println(command);
-  delay(1000);
 
-  // Đọc dữ liệu từ module SIM800L
-  String response = "";
-  while (SIM800L.available()) {
-    response = SIM800L.readString();
-    delay(10);
-  }
-
-  // Kiểm tra phản hồi để xác định xem vị trí trong danh bạ có dữ liệu hay không
-  if (response.indexOf("ERROR") == -1 && response.indexOf("OK") != -1) {
-    return true; // Vị trí trong danh bạ có dữ liệu
-  } else {
-    return false; // Vị trí trong danh bạ không có dữ liệu hoặc có lỗi xảy ra
-  }
-}
 bool deleteSMS(int index) {
+  sendCMD("AT");
   String command = "AT+CMGD=";
   command += index; // Truyền số thứ tự tin nhắn cần xóa
   command += "\r";
@@ -200,10 +150,8 @@ bool deleteSMS(int index) {
 }
 String readSMS(int index) {
   sendCMD("AT");
-  delay(1000);
   String command = "AT+CMGF=1\r"; // Đặt chế độ tin nhắn văn bản
   sendCMD(command);
-  delay(1000);
   command = "AT+CMGR=";
   command += index; // Truyền số thứ tự tin nhắn cần đọc
   command += "\r";

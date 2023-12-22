@@ -41,5 +41,6 @@ void printDebug(String log) {
   #ifdef DEBUG
   switch_uart(USB);
   Serial.println(log);
+  delay(20);
   #endif
 }

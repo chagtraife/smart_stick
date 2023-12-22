@@ -8,7 +8,7 @@ void df_init() {
   switch_uart(DF);
   myDFPlayer.begin(FPSerial, false, false);
   myDFPlayer.setTimeOut(500);
-  myDFPlayer.volume(8);
+  myDFPlayer.volume(4);
   myDFPlayer.EQ(DFPLAYER_EQ_NORMAL);
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
 }
@@ -32,3 +32,16 @@ void stopDF() {
   myDFPlayer.stop();
 }
 
+void add_sdt_success() {
+  printDebug("add_sdt_success");
+  switch_uart(DF);
+  myDFPlayer.playMp3Folder(3); //play specific mp3 in SD:/MP3/0002.mp3; File Name(0~65535)
+  delay(2000);
+}
+
+void reset_sdt_success() {
+  printDebug("reset_sdt_success");
+  switch_uart(DF);
+  myDFPlayer.playMp3Folder(4); //play specific mp3 in SD:/MP3/0002.mp3; File Name(0~65535)
+  delay(2000);
+}

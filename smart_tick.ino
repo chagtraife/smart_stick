@@ -177,15 +177,11 @@ void sos() {
   } else {
     message = "SOS!!!";
   }
-  // printDebug(message);
-  int cnt = 0;
-  // for (int i = 0; (i < PHONEBOOK_SIZE) && (cnt < MAX_SOS_NUM); i++) {
-    String number = "+84336382879";//getContactInfo(i);
-    if (number != "") {
-      cnt++;
-      // sendSMS(number, message);
-    }
-  // }
+
+  String number = getContactInfo(1);
+  if (number.indexOf("+84") != -1) {
+    sendSMS(number, message);
+  }
   
   // alarm();
 }
