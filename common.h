@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define DEBUG
+// #define DEBUG
 #define MOTOR_PIN 11
 #define EN_PIN 4
 #define A1_PIN 3
@@ -21,6 +21,13 @@ typedef enum {
   DF,
   USB
 } module_t;
+
+typedef enum {
+  SHORT_PRESS,
+  LONG_PRESS,
+  DOUBLE_CLICK,
+  NO_STATE
+} but_state_t;
 
 const int PHONEBOOK_SIZE = 10; 
 

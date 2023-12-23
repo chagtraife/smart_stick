@@ -39,12 +39,12 @@ void updateSubcriber() {
   if (res.indexOf("ERROR") != -1) return;
   if (res.indexOf("+CMGR:") == -1) return;
   String number;
-  if (res.indexOf("CHU") != -1) {
+  if (res.indexOf("sub") != -1) {
     int idx_1 = res.indexOf("+84");
     int idx_2 = res.indexOf(",", idx_1);
     number = res.substring(idx_1, idx_2 - 1);
     // printDebug("number: " + number);
-    if (addToPhonebook("sub", number, 1)) { // force
+    if (addToPhonebook("chu", number, 1)) { // force
       add_sdt_success();
     }
     // int idx = -1;

@@ -36,6 +36,17 @@ void setup() {
 
   df_init();
   delay(100);
+  if (isButtonPress) {
+    if (isLongPress()) {
+      bip();
+      guide();
+      for (int i = 0; i < 60; i++) {
+        updateSubcriber();
+        delay(1000);
+      }
+      bip();
+    }
+  }
 }
 void read_mpu6050() {
   /* Get new sensor events with the readings */
@@ -128,7 +139,7 @@ bool read_GPS(float *latitude, float *longitude) {
 }
 bool checkResponse() {
   int cnt = 0;
-  while((!isButtonPress)) {
+  while(!isButtonPress) {
     cnt++;
     delay(50);
     if (cnt > 200) {
@@ -138,19 +149,49 @@ bool checkResponse() {
   }
   return true;
 }
-bool isSOSPress() {
+bool checkFallResponse() {
+  int cnt = 0;
+  while((!isButtonPress) && ishorizontal() ) {
+    cnt++;
+    delay(50);
+    if (cnt > 200) {
+      //timeout
+      return false;
+    }
+  }
+  return true;
+}
+but_state_t getButState() {
   if (isButtonPress) {
     delay(50);
     int cnt = 0;
-    bool isLongPress = false;
-    while (isButtonPress && (cnt <25)) {
+    while (isButtonPress && (cnt <50)) {
       cnt++;
-      if (cnt == 25) {
-        isLongPress = true;
-      }
-      delay(50);
+      delay(60);
     }
-    if (isLongPress) {
+    if (cnt == 50) {
+      return LONG_PRESS;
+    }
+    if ((3 < cnt) && (cnt < 15)) {
+      return SHORT_PRESS;
+    }
+  }
+  return NO_STATE;
+
+}
+bool isLongPress() {
+  if (isButtonPress) {
+    delay(50);
+    int cnt = 0;
+    bool longPress = false;
+    while (isButtonPress && (cnt <50)) {
+      cnt++;
+      if (cnt == 50) {
+        longPress = true;
+      }
+      delay(60);
+    }
+    if (longPress) {
       return true;
     }
   }
@@ -175,6 +216,8 @@ bool isFall() {
 }
 void sos() {
   printDebug("sos");
+  analogWrite(MOTOR_PIN, 0);
+  alarm();
   float lat, lon = 0;
   String message = "";
   if (read_GPS(&lat, &lon)) {
@@ -187,40 +230,28 @@ void sos() {
   if (number.indexOf("+84") != -1) {
     sendSMS(number, message);
   }
-  
-  // alarm();
 }
 
-int cnt_loop = 0;
-bool isFalled = false;
 void loop() {
   read_SR04T();
 
-  // if (!isFall()) {
-  //   isFalled = false;
-  //   stopDF();
-  // }
-  // else if (!isFalled) {
-  //   askUser();
-  //   if (!checkResponse()) {
-  //     sos();
-  //     isFalled = true;
-  //   };
-  // }
+  if (isButtonPress) {
+    if (isLongPress()) {
+      printDebug("isLongPress");
+      sos();
+      while (isButtonPress);
+      while(!checkResponse());
+      stopDF();
+    }
+  }
 
-  // if (isSOSPress()) {
-  //   printDebug("isSOSPress");
-  //   sos();
-  //   while (isButtonPress);
-  //   checkResponse();
-  // }
-  
-  // cnt_loop++;
-  // if (cnt_loop == 5) {
-    
-  //   cnt_loop = 0;
-  //   // có thể thêm điều kiện gậy để im, không hoạt động, dùng cảm biến gia tốc
-  //   // updat0eSubcriber(); // 20s update
-  // }
+  if (isFall()) {
+    askUser();
+    if (!checkFallResponse()) {
+      sos();
+      while (!checkFallResponse());
+      stopDF();
+    };
+  }
   delay(200);
 }
