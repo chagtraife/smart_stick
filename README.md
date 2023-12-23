@@ -9,7 +9,7 @@
 	
 	
 ## To add phone number:
-- press hold button -> turn on power -> hold button until hear "bip" sound. At that time, device can add/reset phone number.
+- press hold button -> turn on power -> hold button until hear "bip" sound. At that time, device can subcribe/unsubcribe phone number.
 - send "sub" to subcribe
 - send "reset" to unsubcribe
 
