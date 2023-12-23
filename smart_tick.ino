@@ -40,7 +40,7 @@ void setup() {
     if (isLongPress()) {
       bip();
       guide();
-      for (int i = 0; i < 30; i++) {
+      for (int i = 0; i < 20; i++) {
         updateSubcriber();
         delay(1000);
       }
@@ -225,7 +225,6 @@ void sos() {
   } else {
     message = "SOS!!!";
   }
-
   String number = getContactInfo(1);
   if (number.indexOf("+84") != -1) {
     sendSMS(number, message);

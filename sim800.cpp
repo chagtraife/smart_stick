@@ -88,7 +88,7 @@ void updateSubcriber() {
 
 bool addToPhonebook(String name, String phoneNumber, int index) {
   sendCMD("AT");
-  String command = "AT+CPBW=" + String(index) + ",\"" + phoneNumber + "\",129,\"" + name + "\"";
+  String command = "AT+CPBW=" + String(index) + ",\"" + phoneNumber + "\",,\"" + name + "\"";
   String response = sendCMD(command);
 
   // Kiểm tra kết quả phản hồi để xác định xem số điện thoại đã được thêm vào danh bạ hay không
