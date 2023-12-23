@@ -40,7 +40,7 @@ void setup() {
     if (isLongPress()) {
       bip();
       guide();
-      for (int i = 0; i < 60; i++) {
+      for (int i = 0; i < 30; i++) {
         updateSubcriber();
         delay(1000);
       }
@@ -240,7 +240,7 @@ void loop() {
       printDebug("isLongPress");
       sos();
       while (isButtonPress);
-      while(!checkResponse());
+      checkResponse();
       stopDF();
     }
   }

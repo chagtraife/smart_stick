@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-// #define DEBUG
+#define DEBUG
 #define MOTOR_PIN 11
 #define EN_PIN 4
 #define A1_PIN 3
