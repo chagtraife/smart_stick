@@ -13,6 +13,6 @@
 - send "sub" to subcribe
 - send "reset" to unsubcribe
 
-## Folw:
+## Flow:
 ![flow](https://github.com/chagtraife/smart_tick/assets/40013601/8c0ad3f9-39cc-4766-a566-ed59628b9844)
 
